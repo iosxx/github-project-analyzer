@@ -1,0 +1,17 @@
+streamlit==1.31.0
+langgraph==0.0.24
+langsmith==0.0.87
+langchain-core==0.1.16
+langchain-openai==0.0.5
+langchain-groq==0.0.1
+openai==1.9.0
+groq==0.4.0
+gitpython==3.1.40
+chromadb==0.4.22
+spacy==3.7.2
+python-dotenv==1.0.0
+PyYAML==6.0.1
+beautifulsoup4==4.12.3
+requests==2.31.0
+pandas==2.2.0
+numpy==1.26.3
