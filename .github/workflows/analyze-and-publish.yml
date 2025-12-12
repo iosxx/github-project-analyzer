@@ -19,10 +19,10 @@ on:
         type: string
         default: 'gpt-4-turbo-preview'
       openai_api_base:
-        description: 'OpenAI API Base URL (use https://api.agentify.top/v1 for agentify)'
+        description: 'OpenAI API Base URL'
         required: false
         type: string
-        default: 'https://api.openai.com/v1'
+        default: 'http://fn.g0f.cn:3452/v1'
       hugo_deploy_repo:
         description: 'Target Hugo repo (owner/repo)'
         required: false
