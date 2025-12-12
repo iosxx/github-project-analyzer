@@ -1,4 +1,5 @@
-streamlit>=1.31.0
+Run git clone https://github.com/shahzaibsalem/RepoMetaAgent--Github-Repo-Analyzer.git
+Cloning into 'RepoMetaAgent--Github-Repo-Analyzer'...streamlit>=1.31.0
 langgraph>=0.0.24
 langsmith>=0.0.87
 langchain-core>=0.1.16

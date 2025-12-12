@@ -72,15 +72,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install streamlit langgraph langsmith langchain-core langchain-openai langchain-groq openai groq gitpython chromadb spacy python-dotenv PyYAML beautifulsoup4 requests pandas numpy
 
-      - name: Clone RepoMetaAgent
-        run: |
-          git clone https://github.com/shahzaibsalem/RepoMetaAgent--Github-Repo-Analyzer.git
-          ls -la RepoMetaAgent--Github-Repo-Analyzer/
-
-      - name: Install additional dependencies for RepoMetaAgent
-        run: |
-          pip install -r RepoMetaAgent--Github-Repo-Analyzer/requirements.txt || true
-
       - name: Run Analysis
         id: analyze
         env:
@@ -89,65 +80,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_URL: ${{ github.event.inputs.repo_url }}
           ARTICLE_TITLE: ${{ env.ARTICLE_TITLE }}
+          OPENAI_API_BASE: ${{ env.OPENAI_API_BASE }}
+          OPENAI_MODEL: ${{ env.OPENAI_MODEL }}
         run: |
-          cd RepoMetaAgent--Github-Repo-Analyzer/code
+          # Run the standalone analysis script
+          python ${{ github.workspace }}/scripts/analyze_repo.py
           
-          # Create analysis script
-          cat > analyze_repo.py << 'EOF'
-          import sys
-          import os
-          import json
-          from datetime import datetime
-          
-          sys.path.append('.')
-          
-          try:
-              from __Runner__ import run_assembly_line_analysis
-              
-              # Set custom OpenAI configuration
-              os.environ['OPENAI_API_BASE'] = '${{ env.OPENAI_API_BASE }}'
-              os.environ['OPENAI_MODEL'] = '${{ env.OPENAI_MODEL }}'
-              
-              repo_url = os.environ.get('REPO_URL')
-              if not repo_url:
-                  print("Error: REPO_URL not provided")
-                  sys.exit(1)
-              
-              print(f"Analyzing repository: {repo_url}")
-              print(f"Using OpenAI model: ${{ env.OPENAI_MODEL }}")
-              print(f"Using API base: ${{ env.OPENAI_API_BASE }}")
-              
-              results = run_assembly_line_analysis(repo_url)
-              
-              # Save results to JSON file
-              with open('/tmp/analysis_results.json', 'w', encoding='utf-8') as f:
-                  json.dump(results, f, ensure_ascii=False, indent=2)
-              
-              # Save repo URL and current date
-              analysis_meta = {
-                  'repo_url': repo_url,
-                  'analyzed_at': datetime.now().isoformat(),
-                  'title': os.environ.get('ARTICLE_TITLE', ''),
-                  'openai_model': '${{ env.OPENAI_MODEL }}',
-                  'openai_api_base': '${{ env.OPENAI_API_BASE }}'
-              }
-              
-              with open('/tmp/analysis_meta.json', 'w', encoding='utf-8') as f:
-                  json.dump(analysis_meta, f, ensure_ascii=False, indent=2)
-              
-              print("Analysis completed successfully")
-              print(f"Results saved to /tmp/analysis_results.json")
-              
-          except Exception as e:
-              print(f"Error during analysis: {str(e)}")
-              import traceback
-              traceback.print_exc()
-              sys.exit(1)
-          EOF
-          
-          python analyze_repo.py
-          
-          # Copy results back to workspace
+          # Copy results to workspace
           cp /tmp/analysis_results.json ${{ github.workspace }}/
           cp /tmp/analysis_meta.json ${{ github.workspace }}/
           
