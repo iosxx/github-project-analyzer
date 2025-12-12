@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Test outputs
+analysis.md
+analysis_results.json
+analysis_meta.json
+filename.txt
+
+# Cloned repos
+RepoMetaAgent--Github-Repo-Analyzer/
+
+# OS
+.DS_Store
+Thumbs.db
