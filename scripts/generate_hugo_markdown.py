@@ -142,78 +142,97 @@ def main():
     # Generate deployment tutorial
     deployment_tutorial = generate_deployment_tutorial(github_topics, file_structure, repo_url, repo_name)
     
-    # Generate Hugo markdown
+    # Get repo info
+    repo_info = results.get('repo_info', {})
+    stars = repo_info.get('stars', 0)
+    forks = repo_info.get('forks', 0)
+    language = repo_info.get('language', '未知')
+    license_name = repo_info.get('license', '未知')
+    
+    # Generate Hugo markdown - Weekly Newsletter Style
     markdown = f'''---
 title: "{title}"
 date: {analyzed_date}
 categories:
-  - "项目分析"
+  - "开源周刊"
+  - "项目推荐"
 tags: {tags_str}
 draft: false
-slug: "{repo_name}-analysis"
-description: "GitHub 项目 {repo_name} 的 AI 分析报告，包含项目概述、技术栈分析、优缺点评价和搭建教程"
+slug: "{repo_name}-recommendation"
+description: "本周推荐开源项目 {repo_name}，{repo_info.get('description', '一个值得关注的开源项目')[:80]}"
 ---
 
-## 基本信息
+## 🌟 项目亮点
+
+{results.get('highlight', results.get('short_summary', '暂无亮点描述'))}
+
+## 📊 项目概览
 
 | 属性 | 值 |
-|------|----|
-| 仓库地址 | [{repo_url}]({repo_url}) |
-| 仓库所有者 | {owner} |
-| 项目名称 | {repo_name} |
-| 分析时间 | {analyzed_date} |
-| AI 模型 | {model} |
+|------|-----|
+| **项目名称** | [{repo_name}]({repo_url}) |
+| **主要语言** | {language} |
+| **Star 数** | ⭐ {stars:,} |
+| **Fork 数** | 🍴 {forks:,} |
+| **许可证** | {license_name or '未知'} |
+| **所有者** | [{owner}](https://github.com/{owner}) |
 
-## 项目概述
+## 📖 项目简介
 
 {results.get('long_summary', '暂无项目概述')}
 
-## 核心功能
+## ✨ 核心功能
 
-{results.get('short_summary', '暂无功能描述')}
+{results.get('core_features', results.get('short_summary', '暂无功能描述'))}
 
-## 技术栈
+## 🏗️ 技术架构
 
-**主要技术**：{tech_stack}
+{results.get('tech_architecture', results.get('tech_analysis', ''))}
 
-**关键词**：{', '.join(keywords[:10]) if keywords else '未提取'}
+**技术栈**：{tech_stack}
 
-## 项目结构
+## 🚀 快速上手
+
+{results.get('quick_start', deployment_tutorial)}
+
+## 💡 使用场景
+
+{results.get('use_cases', '请参考项目 README 了解具体使用场景')}
+
+## 👍 优势分析
+
+{results.get('advantages', '')}
+
+## 🔧 待改进
+
+{results.get('improvements', missing_docs_str)}
+
+## ⚖️ 同类对比
+
+{results.get('comparison', '暂无同类项目对比')}
+
+## 📁 项目结构
 
 <details>
 <summary>点击展开项目结构</summary>
 
-```json
+```
 {file_structure_str}
 ```
 
 </details>
 
-## 优缺点分析
+## 💬 推荐理由
 
-{results.get('review_report', '暂无分析结果')}
-
-## 待改进项
-
-{missing_docs_str}
-
-## 搭建教程
-
-{deployment_tutorial}
-
-## 推荐用途
-
-{results.get('suggested_title', '请参考项目 README 了解具体用途')}
-
-## 许可证
-
-请查看项目仓库中的 LICENSE 文件了解详细信息。
+{results.get('recommendation', results.get('suggested_title', '这是一个值得关注的开源项目，推荐开发者尝试使用。'))}
 
 ---
 
-> 📝 **声明**：本分析由 AI（{model}）自动生成，仅供参考。建议结合项目官方文档进行验证。
+> 📝 **声明**：本文由 AI 自动生成，仅供参考。详细信息请查阅[项目官方文档]({repo_url})。
 >
 > 🔗 **生成工具**：[GitHub Project Analyzer](https://github.com/iosxx/github-project-analyzer)
+>
+> ⏰ **分析时间**：{analyzed_date} | **AI 模型**：{model}
 '''
     
     with open('analysis.md', 'w', encoding='utf-8') as f:

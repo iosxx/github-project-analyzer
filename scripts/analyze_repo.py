@@ -82,7 +82,7 @@ def fetch_languages(owner: str, repo: str) -> dict:
     return {}
 
 
-def call_openai(prompt: str, system_prompt: str = "") -> str:
+def call_openai(prompt: str, system_prompt: str = "", max_tokens: int = 4000) -> str:
     """调用 OpenAI API"""
     if not OPENAI_API_KEY:
         return "未配置 OpenAI API Key"
@@ -101,7 +101,7 @@ def call_openai(prompt: str, system_prompt: str = "") -> str:
         "model": OPENAI_MODEL,
         "messages": messages,
         "temperature": 0.7,
-        "max_tokens": 2000
+        "max_tokens": max_tokens
     }
     
     try:
@@ -170,32 +170,49 @@ README 内容 (前 3000 字符):
     # AI 分析
     print("🧠 AI 分析中...")
     
-    system_prompt = """你是一个专业的 GitHub 项目分析师。请根据提供的仓库信息，生成详细的项目分析报告。
-请用中文回答，分析要客观、专业、有深度。"""
+    system_prompt = """你是一位资深的开源项目推荐专家，正在为技术周刊撰写项目推荐文章。
+你的文章风格：
+- 热情洋溢但不失专业
+- 深入浅出，让读者快速理解项目价值
+- 结合实际使用场景，给出具体的推荐理由
+- 内容详实丰富，每个部分都要有足够的信息量
+请用中文撰写，语言生动有趣。"""
     
-    analysis_prompt = f"""请分析以下 GitHub 仓库并提供详细报告：
+    analysis_prompt = f"""请为以下 GitHub 项目撰写一篇详细的周刊推荐文章：
 
 {context}
 
-请按以下格式提供分析（每个部分用 ### 标题分隔）：
+请按以下格式撰写（每个部分用 ### 标题分隔，内容要详细丰富）：
 
-### 项目概述
-（200-300字的项目介绍）
+### 项目亮点
+（用 3-5 句话概括这个项目最吸引人的地方，为什么值得推荐，要有感染力）
+
+### 项目简介
+（400-600字的详细介绍，包括项目背景、解决的问题、核心理念等）
 
 ### 核心功能
-（列出 3-5 个主要功能）
+（详细介绍 5-8 个主要功能，每个功能用 **功能名**：描述 的格式，描述要具体）
 
-### 技术特点
-（分析技术栈和架构特点）
+### 技术架构
+（详细分析技术栈选型、架构设计、代码组织等，300-400字）
 
-### 优点
-（列出 3-5 个优点）
+### 快速上手
+（提供详细的安装和使用步骤，包括命令示例）
 
-### 不足与改进建议
-（列出 2-3 个可改进的地方）
+### 使用场景
+（列出 3-5 个具体的使用场景，说明什么样的人/团队适合使用）
 
-### 适用场景
-（说明项目适合的使用场景）
+### 优势分析
+（详细分析 5 个以上的优点，每个优点要有具体说明）
+
+### 待改进
+（客观指出 2-3 个可以改进的地方）
+
+### 同类对比
+（如果有类似项目，简要对比优劣）
+
+### 推荐理由
+（总结为什么推荐这个项目，适合什么读者，100-150字）
 """
     
     ai_response = call_openai(analysis_prompt, system_prompt)
@@ -210,15 +227,24 @@ README 内容 (前 3000 字符):
     
     # 构建结果
     results = {
-        "long_summary": sections.get("项目概述", repo_info.get('description', '暂无描述')),
-        "short_summary": sections.get("核心功能", "请查看项目 README"),
-        "review_report": f"{sections.get('优点', '')}\n\n{sections.get('不足与改进建议', '')}",
+        "highlight": sections.get("项目亮点", ""),
+        "long_summary": sections.get("项目简介", repo_info.get('description', '暂无描述')),
+        "core_features": sections.get("核心功能", ""),
+        "tech_architecture": sections.get("技术架构", ""),
+        "quick_start": sections.get("快速上手", ""),
+        "use_cases": sections.get("使用场景", ""),
+        "advantages": sections.get("优势分析", ""),
+        "improvements": sections.get("待改进", ""),
+        "comparison": sections.get("同类对比", ""),
+        "recommendation": sections.get("推荐理由", ""),
+        "short_summary": sections.get("项目亮点", repo_info.get('description', '')),
+        "review_report": f"## 优势分析\n\n{sections.get('优势分析', '')}\n\n## 待改进\n\n{sections.get('待改进', '')}",
         "keywords": topics + list(languages.keys())[:5],
         "github_topics": topics if topics else list(languages.keys())[:5],
         "file_structure": file_tree,
-        "missing_documentation": extract_missing_docs(sections.get("不足与改进建议", "")),
-        "suggested_title": sections.get("适用场景", f"使用 {repo} 提升开发效率"),
-        "tech_analysis": sections.get("技术特点", ""),
+        "missing_documentation": extract_missing_docs(sections.get("待改进", "")),
+        "suggested_title": f"本周推荐：{repo} - {repo_info.get('description', '值得关注的开源项目')[:50]}",
+        "tech_analysis": sections.get("技术架构", ""),
         "repo_info": {
             "name": repo_info.get('name'),
             "full_name": repo_info.get('full_name'),
@@ -227,7 +253,12 @@ README 内容 (前 3000 字符):
             "forks": repo_info.get('forks_count'),
             "language": repo_info.get('language'),
             "topics": topics,
-            "license": repo_info.get('license', {}).get('name') if repo_info.get('license') else None
+            "license": repo_info.get('license', {}).get('name') if repo_info.get('license') else None,
+            "html_url": f"https://github.com/{owner}/{repo}",
+            "created_at": repo_info.get('created_at'),
+            "updated_at": repo_info.get('updated_at'),
+            "open_issues": repo_info.get('open_issues_count'),
+            "watchers": repo_info.get('watchers_count')
         }
     }
     
