@@ -17,7 +17,7 @@ on:
         description: 'OpenAI Model (or custom model for third-party APIs)'
         required: false
         type: string
-        default: 'gpt-4-turbo-preview'
+        default: 'gpt-oss:120b'
       openai_api_base:
         description: 'OpenAI API Base URL'
         required: false
